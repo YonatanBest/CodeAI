@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodeAI</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='images/Icon.jpg') }}"
+      type="image/x-icon"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/monokai-sublime.min.css"
+    />
+
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f7fc;
+        background-image: url("{{ url_for('static', filename='images/background.jpg') }}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: rgb(255, 255, 255);
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+
+      label {
+        font-weight: 500;
+        color: #555;
+        display: block;
+        margin-top: 15px;
+      }
+
+      input,
+      button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+        box-sizing: border-box;
+      }
+
+      button {
+        background-color: #4caf50;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      .loading-spinner {
+        display: none;
+        text-align: center;
+      }
+
+      .loading-spinner img {
+        width: 50px;
+      }
+
+      pre {
+        background-color: #2d2d2d;
+        color: #f8f8f2;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        margin-top: 20px;
+      }
+
+      #generatedCode {
+        display: none;
+      }
+
+      @media (max-width: 600px) {
+        h1 {
+          font-size: 24px;
+        }
+        input,
+        button {
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Code AI</h1>
+      <form id="projectForm">
+        <label for="projectName">Project Idea:</label>
+        <input
+          type="text"
+          id="projectName"
+          name="projectName"
+          placeholder="Enter the project idea or description..."
+          required
+        />
+
+        <label for="language">Programming Language:</label>
+        <input
+          type="text"
+          id="language"
+          name="language"
+          placeholder="e.g., Python, JavaScript..."
+          required
+        />
+
+        <label for="framework">Framework (optional):</label>
+        <input
+          type="text"
+          id="framework"
+          name="framework"
+          placeholder="e.g., Flask, React, None"
+        />
+
+        <button type="submit">Generate Code</button>
+      </form>
+
+      <div class="loading-spinner" id="loadingSpinner">
+        <img src="https://i.imgur.com/LLF5iyg.gif" alt="Loading..." />
+      </div>
+
+      <h2 id="generatedCodeTitle" style="display: none">Generated Code:</h2>
+      <pre><code id="generatedCode" class="hljs"></code></pre>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+
+    <script>
+      hljs.highlightAll();
+
+      const form = document.getElementById("projectForm");
+      const loadingSpinner = document.getElementById("loadingSpinner");
+      const generatedCode = document.getElementById("generatedCode");
+      const generatedCodeTitle = document.getElementById("generatedCodeTitle");
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const projectName = document.getElementById("projectName").value;
+        const language = document.getElementById("language").value;
+        const framework = document.getElementById("framework").value;
+
+        const data = {
+          projectName: projectName,
+          language: language,
+          framework: framework,
+        };
+
+        loadingSpinner.style.display = "block";
+        generatedCode.style.display = "none";
+        generatedCodeTitle.style.display = "none";
+
+        fetch("/generate_project", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            loadingSpinner.style.display = "none";
+
+            generatedCode.textContent = data.generated_code;
+            generatedCode.style.display = "block";
+            generatedCodeTitle.style.display = "block";
+
+            hljs.highlightElement(generatedCode);
+          })
+          .catch((error) => {
+            loadingSpinner.style.display = "none";
+            console.error("Error:", error);
+          });
+      });
+    </script>
+  </body>
+</html>
